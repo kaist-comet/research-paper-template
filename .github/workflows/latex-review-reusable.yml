@@ -1,0 +1,62 @@
+name: LaTeX Review (Reusable)
+
+on:
+  workflow_call:
+    secrets:
+      OPENAI_API_KEY:
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout latex-review action
+        uses: actions/checkout@v4
+        with:
+          repository: kaist-comet/red-pen-action
+          path: .latex-review-action
+          sparse-checkout: .latex-review
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install openai PyGithub pyyaml
+
+      - name: Copy review scripts
+        run: |
+          mkdir -p .latex-review-scripts
+          cp -r .latex-review-action/.latex-review/* .latex-review-scripts/
+          # Use local config if it exists, otherwise use default
+          if [ -f .latex-review/config.yml ]; then
+            cp .latex-review/config.yml .latex-review-scripts/config.yml
+          fi
+          if [ -f .latex-review/system_prompt.md ]; then
+            cp .latex-review/system_prompt.md .latex-review-scripts/system_prompt.md
+          fi
+
+      - name: Run LaTeX review
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          cd .latex-review-scripts
+          python review.py

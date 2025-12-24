@@ -1,0 +1,42 @@
+# LaTeX Review Configuration
+# See: https://github.com/your-org/latex-review-action for documentation
+
+# Which files to review (glob patterns)
+include:
+  - "**/*.tex"
+
+# Files to exclude from review (glob patterns)
+exclude:
+  - "**/preamble.tex"
+  - "**/references.tex"
+  - "**/bibliography.tex"
+
+# OpenAI model settings
+model: "gpt-4o"
+max_tokens: 1024
+
+# Review behavior settings
+review:
+  # Maximum comments per file (to avoid overwhelming feedback)
+  max_comments_per_file: 10
+  # Minimum severity to post: error, warning, or suggestion
+  min_severity: suggestion
+  # Skip files larger than this many characters
+  max_file_size: 50000
+
+# Custom rules (appended to the system prompt)
+# Add your course/lab-specific rules here
+custom_rules: |
+  - Use \cref{} instead of \ref{} for cross-references
+  - Figures must be referenced in the text before they appear
+  - Avoid "In this paper, we..." in the abstract
+  - Use active voice when describing your contributions
+  - Numbers less than 10 should be written as words
+
+# Professor's style preferences
+# Add your personal style guidelines here
+style_preferences: |
+  - Prefer concise writing; flag sentences over 40 words
+  - Discourage hedging language ("somewhat", "fairly", "rather")
+  - Mathematical notation should be introduced before use
+  - Each paragraph should have a clear topic sentence
